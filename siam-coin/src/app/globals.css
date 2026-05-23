@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #F0D080;
+  --gold-dark: #8B6914;
+  --dark: #1A1208;
+  --dark-card: #221A0A;
+  --cream: #FDF8EE;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--dark);
+  font-family: 'Sarabun', 'Noto Sans Thai', sans-serif;
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #C9A84C 0%, #F0D080 50%, #C9A84C 100%);
+}
+
+.dark-gradient {
+  background: linear-gradient(135deg, #1A1208 0%, #2D2010 100%);
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(201, 168, 76, 0.2);
+}
+
+.badge-auth {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
