@@ -7,6 +7,73 @@ Frontend         Next.js 15 + TypeScript + Tailwind CSS
 Auth             Supabase Auth (Email + Google OAuth)
 Database         Supabase PostgreSQL + Prisma ORM
 Storage          Supabase Storage / Cloudinary
+Payment          Stripe Checkout + PromptPay + Escrow System
+AI               OpenAI GPT-4o Vision (coin analysis)
+Realtime         Supabase Realtime (auction bidding)
+Deploy           Vercel (frontend) + Supabase (backend)
+```
+
+## Payment + Escrow System
+
+### Flow ของเงิน
+```
+ผู้ซื้อ
+  │
+  ├─ [Stripe Card]   → POST /api/payment/checkout   → Stripe Session
+  │                                                         │
+  └─ [PromptPay]     → POST /api/payment/promptpay  → QR Code
+                                                            │
+                                              Stripe Webhook (payment success)
+                                                            │
+                                              POST /api/webhooks/stripe
+                                                            │
+                                              holdEscrow() → paymentStatus = ESCROW_HELD
+                                                            │
+                                           ผู้ขายจัดส่ง → order.status = SHIPPED
+                                                            │
+                                           ผู้ซื้อยืนยัน → POST /api/escrow/[id]/release
+                                                            │
+                                              releaseEscrow() → paymentStatus = RELEASED
+                                                            │
+                                                    โอนเงินให้ผู้ขาย ✅
+```
+
+### Escrow State Machine
+```
+PENDING → ESCROW_HELD → RELEASED   (ปกติ)
+                     ↘ REFUNDED    (ยกเลิก/ข้อพิพาท)
+```
+
+### Fee Structure
+```
+ราคาเหรียญ      = coin.priceTHB
+ค่าส่ง          = ฿350 (ในประเทศ) / ฿650 (ต่างประเทศ)
+Platform fee    = 3% ของราคาเหรียญ
+──────────────────────────────────────
+ยอดรวม          = ราคา + ค่าส่ง + platform fee
+Seller payout   = ราคาเหรียญ เท่านั้น (ไม่รวมค่าส่ง/fee)
+```
+
+### Stripe Webhook Events
+| Event | Action |
+|---|---|
+| `checkout.session.completed` | holdEscrow() |
+| `payment_intent.succeeded` | holdEscrow() (PromptPay) |
+| `payment_intent.payment_failed` | Notify buyer |
+| `charge.dispute.created` | Create FraudAlert |
+| `charge.refunded` | refundEscrow() |
+
+### Auto-release
+- หลัง `DELIVERED` 7 วัน ไม่มี action → auto-release ให้ seller
+- Run via cron: `autoReleaseExpiredEscrows()`
+
+## Stack
+
+```
+Frontend         Next.js 15 + TypeScript + Tailwind CSS
+Auth             Supabase Auth (Email + Google OAuth)
+Database         Supabase PostgreSQL + Prisma ORM
+Storage          Supabase Storage / Cloudinary
 Payment          Stripe + PromptPay
 AI               OpenAI GPT-4o Vision (coin analysis)
 Realtime         Supabase Realtime (auction bidding)
