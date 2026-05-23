@@ -3,7 +3,7 @@ import { use, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  ArrowLeft, ShieldCheck, Eye, Heart, MessageCircle,
+  ShieldCheck, Eye, Heart, MessageCircle,
   ShoppingCart, MapPin, Calendar, Weight, Ruler,
   TrendingUp, Star, ChevronRight, Package, Lock
 } from 'lucide-react'

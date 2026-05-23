@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import {
   ShieldCheck, TrendingUp, Package, Star,
   Plus, Eye, Edit2, Trash2, Truck, CheckCircle,
@@ -15,7 +16,7 @@ import { MOCK_COINS, MOCK_ORDERS, MOCK_SELLER } from '@/lib/mock-data'
 
 type Tab = 'overview' | 'coins' | 'orders'
 
-export default function DashboardPage() {
+function DashboardPage() {
   const { t } = useLang()
   const [tab, setTab] = useState<Tab>('overview')
   const [coins, setCoins] = useState(MOCK_COINS.slice(0, 5))
@@ -292,5 +293,13 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function DashboardPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <DashboardPage />
+    </ProtectedRoute>
   )
 }

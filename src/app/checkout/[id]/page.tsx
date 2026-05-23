@@ -2,7 +2,7 @@
 import { use, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Lock, Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Lock, Package as PackageIcon, MapPin, CreditCard, CheckCircle } from 'lucide-react'
 import { useLang } from '@/context/LangContext'
 import { Button } from '@/components/ui/Button'
 import { formatPrice } from '@/lib/utils'

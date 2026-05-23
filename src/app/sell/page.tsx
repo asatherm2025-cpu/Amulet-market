@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { Upload, X, CheckCircle, Info } from 'lucide-react'
 import { useLang } from '@/context/LangContext'
 import { Button } from '@/components/ui/Button'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
 
 const MATERIALS = ['เนื้อทองแดง', 'เนื้อเงิน', 'เนื้อทอง', 'เนื้ออัลปาก้า', 'เนื้อทองเหลือง', 'เนื้อผสม']
 const MONKS = ['หลวงปู่ทวด', 'หลวงพ่อเงิน', 'หลวงพ่อคูณ', 'สมเด็จโต', 'หลวงปู่ศุข', 'หลวงพ่อโสธร', 'อื่นๆ']
 
-export default function SellPage() {
+function SellPage() {
   const { t } = useLang()
   const [submitted, setSubmitted] = useState(false)
   const [images, setImages] = useState<string[]>([])
@@ -191,5 +192,13 @@ export default function SellPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SellPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <SellPage />
+    </ProtectedRoute>
   )
 }

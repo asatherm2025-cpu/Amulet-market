@@ -56,7 +56,7 @@ export default function HomePage() {
   const toggleWatchlist = (id: string) => {
     setWatchlist(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
       return next
     })
   }
@@ -239,7 +239,7 @@ export default function HomePage() {
                     <Star key={j} size={14} className="fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-yellow-100/80 text-sm leading-relaxed mb-4">"{r.text}"</p>
+                <p className="text-yellow-100/80 text-sm leading-relaxed mb-4">&ldquo;{r.text}&rdquo;</p>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-yellow-800 flex items-center justify-center text-xs font-bold text-yellow-200">
                     {r.name[0]}

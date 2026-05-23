@@ -12,7 +12,7 @@ const MONKS = ['ทั้งหมด', 'หลวงปู่ทวด', 'ห�
 type SortKey = 'newest' | 'price_asc' | 'price_desc' | 'popular'
 
 export default function MarketPage() {
-  const { t, lang } = useLang()
+  const { t } = useLang()
   const [search, setSearch] = useState('')
   const [authOnly, setAuthOnly] = useState(false)
   const [selectedMonk, setSelectedMonk] = useState('ทั้งหมด')
@@ -52,7 +52,7 @@ export default function MarketPage() {
   const toggleWatchlist = (id: string) => {
     setWatchlist(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
       return next
     })
   }
