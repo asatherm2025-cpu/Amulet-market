@@ -25,6 +25,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/',          label: t.nav.home,      icon: <Store size={16} /> },
     { href: '/market',    label: t.nav.market,     icon: <ShoppingBag size={16} /> },
+    { href: '/blog',      label: 'บทความ',         icon: null },
     { href: '/sell',      label: t.nav.sell,       icon: null },
     { href: '/dashboard', label: t.nav.dashboard,  icon: <LayoutDashboard size={16} /> },
   ]
