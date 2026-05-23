@@ -22,7 +22,7 @@ export async function PATCH(
     })
     if (!alert) return notFound('Alert not found')
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: typeof prisma) => {
       // Mark alert resolved
       await tx.fraudAlert.update({
         where: { id },

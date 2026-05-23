@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import type { User } from '@prisma/client'
+import type { User } from '@/lib/prisma-enums'
 
 // ดึง Supabase session จาก server
 export async function getServerSession() {
@@ -31,11 +31,14 @@ export async function getCurrentUser(): Promise<User | null> {
   const session = await getServerSession()
   if (!session) return null
 
-  const user = await prisma.user.findUnique({
-    where: { supabaseId: session.id },
-  })
-
-  return user
+  try {
+    const user = await prisma.user.findUnique({
+      where: { supabaseId: session.id },
+    })
+    return user
+  } catch {
+    return null
+  }
 }
 
 // Require auth — throw ถ้าไม่ได้ login
@@ -48,7 +51,7 @@ export async function requireAuth(): Promise<User> {
 // Require specific role
 export async function requireRole(...roles: User['role'][]): Promise<User> {
   const user = await requireAuth()
-  if (!roles.includes(user.role)) throw new Error('FORBIDDEN')
+  if (!roles.includes(user.role as User['role'])) throw new Error('FORBIDDEN')
   return user
 }
 

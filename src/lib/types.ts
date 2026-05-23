@@ -122,3 +122,53 @@ export interface AuctionItem {
     isAuthenticated: boolean
   }
 }
+
+
+// ── Legacy Coin type (for mock-data compatibility) ──────────
+export interface Coin {
+  id:              string
+  title_th:        string
+  title_en:        string
+  title_zh?:       string
+  monk_name_th:    string
+  monk_name_en:    string
+  temple_th:       string
+  temple_en:       string
+  province?:       string
+  year_th:         number
+  year_ce:         number
+  material_th:     string
+  material_en:     string
+  size_mm?:        number
+  weight_gram?:    number
+  condition:       1 | 2 | 3 | 4 | 5
+  price_thb:       number
+  images:          string[]
+  is_authenticated: boolean
+  status:          'available' | 'reserved' | 'sold'
+  seller_id:       string
+  description_th?: string
+  description_en?: string
+  view_count:      number
+  created_at:      string
+  seller?:         { id: string; name: string; avatarUrl?: string; rating: number; isVerifiedSeller: boolean }
+  certificate?:    { status: string } | null
+  _count?:         { watchlistItems: number }
+}
+
+export interface Order {
+  id:              string
+  buyer_id:        string
+  coin_id:         string
+  seller_id:       string
+  amount_thb:      number
+  shipping_fee_thb: number
+  escrow_fee_thb:  number
+  total_thb:       number
+  payment_status:  string
+  shipping_status: string
+  tracking_number?: string
+  shipping_address: Record<string, string>
+  coin?:           Coin
+  created_at:      string
+}

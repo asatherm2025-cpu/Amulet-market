@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ok, created, badRequest, unauthorized, conflict, serverError } from '@/lib/api-response'
 import { createOrderSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { CoinStatus, OrderStatus, PaymentStatus } from '@prisma/client'
+import { CoinStatus, OrderStatus, PaymentStatus } from '@/lib/prisma-enums'
 
 function generateOrderNumber(): string {
   const ts   = Date.now().toString(36).toUpperCase()

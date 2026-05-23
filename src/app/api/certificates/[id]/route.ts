@@ -49,7 +49,7 @@ export async function PATCH(
 
     const isApproved = parsed.data.status === 'APPROVED'
 
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx: typeof prisma) => {
       const c = await tx.certificate.update({
         where: { id },
         data:  {

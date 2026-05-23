@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ok, created, badRequest, unauthorized, forbidden, conflict, serverError } from '@/lib/api-response'
 import { createCertSchema, updateCertSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { CertStatus } from '@prisma/client'
+import { CertStatus } from '@/lib/prisma-enums'
 
 // GET /api/certificates — List pending (experts/admin)
 export async function GET(req: NextRequest) {

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ok, created, badRequest, unauthorized, conflict, serverError } from '@/lib/api-response'
 import { placeBidSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { AuctionStatus } from '@prisma/client'
+import { AuctionStatus } from '@/lib/prisma-enums'
 
 // POST /api/auctions/[id]/bid — Place a bid
 export async function POST(
@@ -51,7 +51,7 @@ export async function POST(
     // Previous highest bidder
     const prevHighest = auction.bids[0]
 
-    const bid = await prisma.$transaction(async (tx) => {
+    const bid = await prisma.$transaction(async (tx: typeof prisma) => {
       // Unmark previous winning bid
       if (prevHighest) {
         await tx.bid.update({

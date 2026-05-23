@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ok, created, badRequest, unauthorized, serverError } from '@/lib/api-response'
 import { createAiAnalysisSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { AiStatus } from '@prisma/client'
+import { AiStatus } from '@/lib/prisma-enums'
 
 // POST /api/ai/analyze — Submit image for AI analysis
 export async function POST(req: NextRequest) {

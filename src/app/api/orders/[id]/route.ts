@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ok, notFound, unauthorized, forbidden, badRequest, serverError } from '@/lib/api-response'
 import { updateOrderSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { CoinStatus, OrderStatus, PaymentStatus } from '@prisma/client'
+import { CoinStatus, OrderStatus, PaymentStatus } from '@/lib/prisma-enums'
 
 // GET /api/orders/[id]
 export async function GET(

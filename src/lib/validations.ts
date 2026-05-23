@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { CoinCondition, CoinStatus } from '@prisma/client'
+import { CoinCondition, CoinStatus } from '@/lib/prisma-enums'
 
 // ─── Pagination ───
 export const paginationSchema = z.object({

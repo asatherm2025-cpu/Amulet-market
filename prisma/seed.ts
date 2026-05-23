@@ -3,7 +3,8 @@
 // Run: npx prisma db seed
 // ============================================================
 
-import { PrismaClient, CoinCondition, CoinStatus } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
+import { CoinCondition, CoinStatus } from '../src/lib/prisma-enums'
 
 const prisma = new PrismaClient()
 

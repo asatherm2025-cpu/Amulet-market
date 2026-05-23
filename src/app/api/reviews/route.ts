@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ok, created, badRequest, unauthorized, conflict, serverError } from '@/lib/api-response'
 import { createReviewSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { OrderStatus } from '@prisma/client'
+import { OrderStatus } from '@/lib/prisma-enums'
 
 // GET /api/reviews?sellerId=xxx — Seller reviews
 export async function GET(req: NextRequest) {
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
     if (order.review) return conflict('Review already exists for this order')
 
-    const review = await prisma.$transaction(async (tx) => {
+    const review = await prisma.$transaction(async (tx: typeof prisma) => {
       const r = await tx.review.create({
         data: {
           orderId,

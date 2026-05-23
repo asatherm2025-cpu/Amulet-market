@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { ok, created, badRequest, unauthorized, conflict, serverError } from '@/lib/api-response'
 import { createAuctionSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { AuctionStatus, CoinStatus, Prisma } from '@prisma/client'
+import { AuctionStatus, CoinStatus } from '@/lib/prisma-enums'
 
 // GET /api/auctions — List auctions
 export async function GET(req: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const limit   = Number(searchParams.get('limit') ?? 20)
     const skip    = (page - 1) * limit
 
-    const where: Prisma.AuctionWhereInput = { status }
+    const where: Record<string, unknown> = { status }
 
     const [auctions, total] = await Promise.all([
       prisma.auction.findMany({
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     if (end <= start) return badRequest('End time must be after start time')
     if (start < new Date()) return badRequest('Start time must be in the future')
 
-    const auction = await prisma.$transaction(async (tx) => {
+    const auction = await prisma.$transaction(async (tx: typeof prisma) => {
       const a = await tx.auction.create({
         data: {
           coinId,

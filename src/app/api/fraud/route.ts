@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ok, created, badRequest, unauthorized, forbidden, serverError } from '@/lib/api-response'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { FraudSeverity } from '@prisma/client'
+import { FraudSeverity } from '@/lib/prisma-enums'
 
 // GET /api/fraud — List fraud alerts (admin only)
 export async function GET(req: NextRequest) {
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     // Notify admins
     const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } })
     await prisma.notification.createMany({
-      data: admins.map(a => ({
+      data: admins.map((a: { id: string }) => ({
         userId:  a.id,
         type:    'FRAUD_ALERT' as const,
         title:   `🚨 Fraud Alert: ${alert.severity}`,

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { ok, unauthorized, forbidden, serverError } from '@/lib/api-response'
 import { getCurrentUser } from '@/lib/auth-helpers'
-import { CoinStatus, OrderStatus } from '@prisma/client'
+import { CoinStatus, OrderStatus } from '@/lib/prisma-enums'
 
 // GET /api/admin/stats — Platform statistics
 export async function GET() {

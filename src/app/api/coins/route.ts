@@ -4,7 +4,7 @@ import { ok, created, badRequest, unauthorized, serverError } from '@/lib/api-re
 import { createCoinSchema, coinFilterSchema } from '@/lib/validations'
 import { getCurrentUser } from '@/lib/auth-helpers'
 import { generateCoinSlug } from '@/lib/slug'
-import { CoinStatus, Prisma } from '@prisma/client'
+import { CoinStatus } from '@/lib/prisma-enums'
 
 // GET /api/coins — List coins with filters
 export async function GET(req: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit
 
     // Build where clause
-    const where: Prisma.CoinWhereInput = {
+    const where: Record<string, unknown> = {
       status: status ?? { in: [CoinStatus.AVAILABLE, CoinStatus.RESERVED] },
       ...(q && {
         OR: [
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Build orderBy
-    const orderBy: Prisma.CoinOrderByWithRelationInput =
+    const orderBy: Record<string, unknown> =
       sort === 'price_asc'  ? { priceTHB: 'asc' } :
       sort === 'price_desc' ? { priceTHB: 'desc' } :
       sort === 'popular'    ? { viewCount: 'desc' } :
