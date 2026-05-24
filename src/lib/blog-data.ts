@@ -1,6 +1,6 @@
 // ============================================================
 // SIAM COIN — Blog Data
-// Static blog posts (CMS-ready structure)
+// แก้ไขบทความได้ที่ไฟล์นี้ เพิ่ม object ใหม่ใน BLOG_POSTS
 // ============================================================
 
 export interface BlogPost {
@@ -8,20 +8,23 @@ export interface BlogPost {
   slug:        string
   title:       string
   excerpt:     string
-  content:     string
+  content:     string   // รองรับ markdown-like: ## h2, > quote, - list
   category:    string
   tags:        string[]
   author:      string
-  publishedAt: string
+  publishedAt: string   // YYYY-MM-DD
   readMinutes: number
   coverImage?: string
 }
 
+// ============================================================
+// ✏️ เพิ่ม/แก้ไขบทความได้ที่นี่
+// ============================================================
 export const BLOG_POSTS: BlogPost[] = [
   {
     id:          'post-001',
     slug:        'rian-lor-sinlapa-haeng-sattha',
-    title:       'เหรียญหล่อ…ศิลป์แห่งศรัทธาที่มีชีวิตอยู่เหนือกาลเวลา',
+    title:       'เหรียญหล่อ…ศิลป์แห่งศรัทธาที่มีชีวิตอยู่เหนือกาลเวลา 💎',
     excerpt:     'เหรียญหล่อมิใช่เพียงวัตถุโลหะที่ผ่านการหลอมเท่านั้น หากแต่เป็นผลรวมของศาสตร์โบราณ ความเชื่อ ศิลปะ และแรงศรัทธาของผู้คนในแต่ละยุคสมัย',
     category:    'ความรู้พระเครื่อง',
     tags:        ['เหรียญหล่อ', 'พระเครื่อง', 'พุทธศิลป์', 'นักสะสม', 'เซียนพระ'],
@@ -74,6 +77,7 @@ export const BLOG_POSTS: BlogPost[] = [
   },
 ]
 
+// ── Helpers ──────────────────────────────────────────────────
 export function getBlogPost(slug: string): BlogPost | undefined {
   return BLOG_POSTS.find(p => p.slug === slug)
 }
@@ -81,4 +85,12 @@ export function getBlogPost(slug: string): BlogPost | undefined {
 export function getBlogPosts(category?: string): BlogPost[] {
   if (!category) return BLOG_POSTS
   return BLOG_POSTS.filter(p => p.category === category)
+}
+
+export function getAllCategories(): string[] {
+  return [...new Set(BLOG_POSTS.map(p => p.category))]
+}
+
+export function getAllTags(): string[] {
+  return [...new Set(BLOG_POSTS.flatMap(p => p.tags))]
 }
