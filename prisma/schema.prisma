@@ -1,0 +1,529 @@
+// ============================================================
+// SIAM COIN — Production Prisma Schema
+// Stack: Supabase PostgreSQL + Prisma ORM
+// ============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  BUYER
+  SELLER
+  EXPERT
+  ADMIN
+}
+
+enum CoinStatus {
+  DRAFT
+  PENDING_REVIEW
+  AVAILABLE
+  RESERVED
+  SOLD
+  DELISTED
+}
+
+enum CoinCondition {
+  WORN        // 1 - สภาพคงเดิม
+  FAIR        // 2 - สภาพพอใช้
+  GOOD        // 3 - สภาพดี
+  VERY_GOOD   // 4 - สภาพดีมาก
+  MINT        // 5 - สวยใหม่
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  PENDING
+  ESCROW_HELD
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+enum AuctionStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum CertStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotifType {
+  ORDER_UPDATE
+  AUCTION_BID
+  AUCTION_WIN
+  AUCTION_OUTBID
+  CERT_UPDATE
+  SYSTEM
+  FRAUD_ALERT
+}
+
+enum FraudSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AiStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================================
+// USER
+// ============================================================
+
+model User {
+  id              String    @id @default(uuid())
+  supabaseId      String    @unique @map("supabase_id")
+  email           String    @unique
+  name            String
+  nameEn          String?   @map("name_en")
+  avatarUrl       String?   @map("avatar_url")
+  bio             String?
+  phone           String?
+  lineId          String?   @map("line_id")
+  wechatId        String?   @map("wechat_id")
+  country         String    @default("TH")
+  role            Role      @default(BUYER)
+  isVerifiedSeller Boolean  @default(false) @map("is_verified_seller")
+  isVerifiedExpert Boolean  @default(false) @map("is_verified_expert")
+  isBanned        Boolean   @default(false) @map("is_banned")
+  banReason       String?   @map("ban_reason")
+  rating          Decimal   @default(0) @db.Decimal(3, 2)
+  totalSales      Int       @default(0) @map("total_sales")
+  totalPurchases  Int       @default(0) @map("total_purchases")
+  stripeCustomerId String?  @unique @map("stripe_customer_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  coins           Coin[]    @relation("SellerCoins")
+  orders          Order[]   @relation("BuyerOrders")
+  sales           Order[]   @relation("SellerOrders")
+  certificates    Certificate[] @relation("ExpertCerts")
+  reviewsGiven    Review[]  @relation("ReviewerReviews")
+  reviewsReceived Review[]  @relation("SellerReviews")
+  watchlist       Watchlist[]
+  bids            Bid[]
+  notifications   Notification[]
+  aiAnalyses      AiAnalysis[]
+  fraudAlerts     FraudAlert[]
+  transactions    Transaction[]
+
+  @@index([email])
+  @@index([role])
+  @@index([country])
+  @@map("users")
+}
+
+// ============================================================
+// MONK (เกจิอาจารย์)
+// ============================================================
+
+model Monk {
+  id          String    @id @default(uuid())
+  nameTh      String    @map("name_th")
+  nameEn      String    @map("name_en")
+  templeTh    String?   @map("temple_th")
+  templeEn    String?   @map("temple_en")
+  province    String?
+  birthYear   Int?      @map("birth_year")
+  deathYear   Int?      @map("death_year")
+  bioTh       String?   @map("bio_th")
+  bioEn       String?   @map("bio_en")
+  imageUrl    String?   @map("image_url")
+  isFamous    Boolean   @default(false) @map("is_famous")
+  coinCount   Int       @default(0) @map("coin_count")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  coins       Coin[]
+
+  @@index([nameTh])
+  @@index([isFamous])
+  @@map("monks")
+}
+
+// ============================================================
+// COIN (เหรียญพระเครื่อง)
+// ============================================================
+
+model Coin {
+  id              String        @id @default(uuid())
+  titleTh         String        @map("title_th")
+  titleEn         String        @map("title_en")
+  titleZh         String?       @map("title_zh")
+  slug            String        @unique
+  monkId          String?       @map("monk_id")
+  monkNameTh      String        @map("monk_name_th")
+  monkNameEn      String        @map("monk_name_en")
+  templeTh        String        @map("temple_th")
+  templeEn        String        @map("temple_en")
+  province        String?
+  yearTh          Int           @map("year_th")
+  yearCe          Int           @map("year_ce")
+  materialTh      String        @map("material_th")
+  materialEn      String        @map("material_en")
+  sizeMm          Decimal?      @map("size_mm") @db.Decimal(6, 2)
+  weightGram      Decimal?      @map("weight_gram") @db.Decimal(6, 2)
+  condition       CoinCondition
+  priceTHB        Decimal       @map("price_thb") @db.Decimal(12, 2)
+  images          String[]
+  descriptionTh   String?       @map("description_th") @db.Text
+  descriptionEn   String?       @map("description_en") @db.Text
+  descriptionZh   String?       @map("description_zh") @db.Text
+  isAuthenticated Boolean       @default(false) @map("is_authenticated")
+  status          CoinStatus    @default(DRAFT)
+  viewCount       Int           @default(0) @map("view_count")
+  watchlistCount  Int           @default(0) @map("watchlist_count")
+  sellerId        String        @map("seller_id")
+  isAuction       Boolean       @default(false) @map("is_auction")
+  tags            String[]      @default([])
+  aiScore         Decimal?      @map("ai_score") @db.Decimal(5, 2)
+  fraudScore      Decimal?      @map("fraud_score") @db.Decimal(5, 2)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  monk            Monk?         @relation(fields: [monkId], references: [id])
+  seller          User          @relation("SellerCoins", fields: [sellerId], references: [id])
+  certificate     Certificate?
+  order           Order?
+  auction         Auction?
+  watchlistItems  Watchlist[]
+  priceHistory    PriceHistory[]
+  aiAnalysis      AiAnalysis?
+  fraudAlerts     FraudAlert[]
+
+  @@index([status])
+  @@index([sellerId])
+  @@index([isAuthenticated])
+  @@index([priceTHB])
+  @@index([yearTh])
+  @@index([monkId])
+  @@index([createdAt(sort: Desc)])
+  @@map("coins")
+}
+
+// ============================================================
+// CERTIFICATE (ใบรับรองของแท้)
+// ============================================================
+
+model Certificate {
+  id              String      @id @default(uuid())
+  coinId          String      @unique @map("coin_id")
+  expertId        String      @map("expert_id")
+  status          CertStatus  @default(PENDING)
+  notesTh         String?     @map("notes_th") @db.Text
+  notesEn         String?     @map("notes_en") @db.Text
+  certImageUrl    String?     @map("cert_image_url")
+  rejectionReason String?     @map("rejection_reason")
+  issuedAt        DateTime?   @map("issued_at")
+  expiresAt       DateTime?   @map("expires_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  coin            Coin        @relation(fields: [coinId], references: [id], onDelete: Cascade)
+  expert          User        @relation("ExpertCerts", fields: [expertId], references: [id])
+
+  @@index([status])
+  @@index([expertId])
+  @@map("certificates")
+}
+
+// ============================================================
+// ORDER (คำสั่งซื้อ)
+// ============================================================
+
+model Order {
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique @map("order_number")
+  buyerId           String        @map("buyer_id")
+  sellerId          String        @map("seller_id")
+  coinId            String        @unique @map("coin_id")
+  amountTHB         Decimal       @map("amount_thb") @db.Decimal(12, 2)
+  shippingFeeTHB    Decimal       @default(0) @map("shipping_fee_thb") @db.Decimal(12, 2)
+  escrowFeeTHB      Decimal       @default(0) @map("escrow_fee_thb") @db.Decimal(12, 2)
+  totalTHB          Decimal       @map("total_thb") @db.Decimal(12, 2)
+  status            OrderStatus   @default(PENDING_PAYMENT)
+  paymentStatus     PaymentStatus @default(PENDING)
+  trackingNumber    String?       @map("tracking_number")
+  shippingCarrier   String?       @map("shipping_carrier")
+  shippingAddress   Json          @map("shipping_address")
+  stripePaymentId   String?       @unique @map("stripe_payment_id")
+  stripeSessionId   String?       @unique @map("stripe_session_id")
+  paidAt            DateTime?     @map("paid_at")
+  shippedAt         DateTime?     @map("shipped_at")
+  deliveredAt       DateTime?     @map("delivered_at")
+  completedAt       DateTime?     @map("completed_at")
+  notes             String?       @db.Text
+  disputeReason     String?       @map("dispute_reason") @db.Text
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  buyer             User          @relation("BuyerOrders", fields: [buyerId], references: [id])
+  seller            User          @relation("SellerOrders", fields: [sellerId], references: [id])
+  coin              Coin          @relation(fields: [coinId], references: [id])
+  review            Review?
+  transaction       Transaction?
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt(sort: Desc)])
+  @@map("orders")
+}
+
+// ============================================================
+// AUCTION (ประมูลสด)
+// ============================================================
+
+model Auction {
+  id            String        @id @default(uuid())
+  coinId        String        @unique @map("coin_id")
+  sellerId      String        @map("seller_id")
+  startPriceTHB Decimal       @map("start_price_thb") @db.Decimal(12, 2)
+  reservePriceTHB Decimal?    @map("reserve_price_thb") @db.Decimal(12, 2)
+  currentBidTHB Decimal?      @map("current_bid_thb") @db.Decimal(12, 2)
+  minIncrementTHB Decimal     @default(100) @map("min_increment_thb") @db.Decimal(12, 2)
+  buyNowPriceTHB Decimal?     @map("buy_now_price_thb") @db.Decimal(12, 2)
+  status        AuctionStatus @default(SCHEDULED)
+  startAt       DateTime      @map("start_at")
+  endAt         DateTime      @map("end_at")
+  winnerId      String?       @map("winner_id")
+  winningBidTHB Decimal?      @map("winning_bid_thb") @db.Decimal(12, 2)
+  bidCount      Int           @default(0) @map("bid_count")
+  viewerCount   Int           @default(0) @map("viewer_count")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  coin          Coin          @relation(fields: [coinId], references: [id])
+  bids          Bid[]
+
+  @@index([status])
+  @@index([startAt])
+  @@index([endAt])
+  @@map("auctions")
+}
+
+// ============================================================
+// BID (การประมูล)
+// ============================================================
+
+model Bid {
+  id          String    @id @default(uuid())
+  auctionId   String    @map("auction_id")
+  bidderId    String    @map("bidder_id")
+  amountTHB   Decimal   @map("amount_thb") @db.Decimal(12, 2)
+  isWinning   Boolean   @default(false) @map("is_winning")
+  isAutoBid   Boolean   @default(false) @map("is_auto_bid")
+  maxBidTHB   Decimal?  @map("max_bid_thb") @db.Decimal(12, 2)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  auction     Auction   @relation(fields: [auctionId], references: [id])
+  bidder      User      @relation(fields: [bidderId], references: [id])
+
+  @@index([auctionId])
+  @@index([bidderId])
+  @@index([createdAt(sort: Desc)])
+  @@map("bids")
+}
+
+// ============================================================
+// REVIEW (รีวิว)
+// ============================================================
+
+model Review {
+  id          String    @id @default(uuid())
+  orderId     String    @unique @map("order_id")
+  reviewerId  String    @map("reviewer_id")
+  sellerId    String    @map("seller_id")
+  rating      Int
+  titleTh     String?   @map("title_th")
+  commentTh   String?   @map("comment_th") @db.Text
+  commentEn   String?   @map("comment_en") @db.Text
+  images      String[]  @default([])
+  isVerified  Boolean   @default(true) @map("is_verified")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  order       Order     @relation(fields: [orderId], references: [id])
+  reviewer    User      @relation("ReviewerReviews", fields: [reviewerId], references: [id])
+  seller      User      @relation("SellerReviews", fields: [sellerId], references: [id])
+
+  @@index([sellerId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+// ============================================================
+// WATCHLIST
+// ============================================================
+
+model Watchlist {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  coinId    String    @map("coin_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coin      Coin      @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, coinId])
+  @@index([userId])
+  @@map("watchlist")
+}
+
+// ============================================================
+// PRICE HISTORY (ประวัติราคา)
+// ============================================================
+
+model PriceHistory {
+  id          String    @id @default(uuid())
+  coinId      String?   @map("coin_id")
+  coinTag     String    @map("coin_tag")
+  priceTHB    Decimal   @map("price_thb") @db.Decimal(12, 2)
+  source      String?
+  recordedAt  DateTime  @default(now()) @map("recorded_at")
+
+  coin        Coin?     @relation(fields: [coinId], references: [id], onDelete: SetNull)
+
+  @@index([coinTag])
+  @@index([recordedAt])
+  @@map("price_history")
+}
+
+// ============================================================
+// NOTIFICATION
+// ============================================================
+
+model Notification {
+  id          String      @id @default(uuid())
+  userId      String      @map("user_id")
+  type        NotifType
+  title       String
+  message     String      @db.Text
+  data        Json?
+  isRead      Boolean     @default(false) @map("is_read")
+  readAt      DateTime?   @map("read_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+// ============================================================
+// TRANSACTION (Payment log)
+// ============================================================
+
+model Transaction {
+  id              String    @id @default(uuid())
+  orderId         String?   @unique @map("order_id")
+  userId          String    @map("user_id")
+  type            String    // payment, refund, payout, fee
+  amountTHB       Decimal   @map("amount_thb") @db.Decimal(12, 2)
+  currency        String    @default("THB")
+  provider        String    // stripe, promptpay, truemoney
+  providerTxId    String?   @unique @map("provider_tx_id")
+  status          String    // success, failed, pending
+  metadata        Json?
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  order           Order?    @relation(fields: [orderId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("transactions")
+}
+
+// ============================================================
+// AI ANALYSIS (วิเคราะห์รูปด้วย AI)
+// ============================================================
+
+model AiAnalysis {
+  id              String    @id @default(uuid())
+  coinId          String?   @unique @map("coin_id")
+  userId          String    @map("user_id")
+  imageUrl        String    @map("image_url")
+  status          AiStatus  @default(PROCESSING)
+  authenticityScore Decimal? @map("authenticity_score") @db.Decimal(5, 2)
+  conditionScore  Decimal?  @map("condition_score") @db.Decimal(5, 2)
+  detectedMonk    String?   @map("detected_monk")
+  detectedYear    Int?      @map("detected_year")
+  detectedMaterial String?  @map("detected_material")
+  confidence      Decimal?  @db.Decimal(5, 2)
+  rawResponse     Json?     @map("raw_response")
+  processingMs    Int?      @map("processing_ms")
+  errorMessage    String?   @map("error_message")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  coin            Coin?     @relation(fields: [coinId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([userId])
+  @@map("ai_analyses")
+}
+
+// ============================================================
+// FRAUD ALERT (ระบบตรวจจับการโกง)
+// ============================================================
+
+model FraudAlert {
+  id          String        @id @default(uuid())
+  coinId      String?       @map("coin_id")
+  userId      String?       @map("user_id")
+  severity    FraudSeverity
+  type        String        // duplicate_image, price_manipulation, fake_cert, etc.
+  description String        @db.Text
+  evidence    Json?
+  isResolved  Boolean       @default(false) @map("is_resolved")
+  resolvedBy  String?       @map("resolved_by")
+  resolvedAt  DateTime?     @map("resolved_at")
+  resolution  String?       @db.Text
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  coin        Coin?         @relation(fields: [coinId], references: [id])
+  user        User?         @relation(fields: [userId], references: [id])
+
+  @@index([severity])
+  @@index([isResolved])
+  @@index([createdAt(sort: Desc)])
+  @@map("fraud_alerts")
+}
